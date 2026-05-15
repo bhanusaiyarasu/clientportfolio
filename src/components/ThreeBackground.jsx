@@ -7,269 +7,231 @@ gsap.registerPlugin(ScrollTrigger)
 
 export default function ThreeBackground() {
   const containerRef = useRef()
-  const mouse = useRef({ x: 0, y: 0 })
-  const scroll = useRef(0)
+  const mouse = useRef({ x: 0, y: 0, tx: 0, ty: 0 })
 
   useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    camera.position.z = 10
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000)
+    camera.position.z = 22
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    containerRef.current.appendChild(renderer.domElement)
+    renderer.outputColorSpace = THREE.SRGBColorSpace
+    renderer.toneMapping = THREE.ACESFilmicToneMapping
+    container.appendChild(renderer.domElement)
 
-    // FOG
-    scene.fog = new THREE.FogExp2(0x030303, 0.05)
+    // Lights for premium material
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4)
+    scene.add(ambientLight)
+    const mainLight = new THREE.DirectionalLight(0x7fd959, 1.5)
+    mainLight.position.set(5, 5, 5)
+    scene.add(mainLight)
+    const blueLight = new THREE.PointLight(0x00ffff, 0.8)
+    blueLight.position.set(-5, -5, 10)
+    scene.add(blueLight)
 
-    // PARTICLE SYSTEM (GLSL)
-    const particleCount = 2000
-    const positions = new Float32Array(particleCount * 3)
-    const sizes = new Float32Array(particleCount)
-    const randoms = new Float32Array(particleCount)
+    scene.fog = new THREE.FogExp2(0x030303, 0.012)
 
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 30
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 30
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 30
-      sizes[i] = Math.random() * 2
-      randoms[i] = Math.random()
+    /* ──────── GLSL PARTICLE FIELD ──────── */
+    const PCOUNT = 1800
+    const pp = new Float32Array(PCOUNT * 3)
+    const ps = new Float32Array(PCOUNT)
+    const pr = new Float32Array(PCOUNT)
+    for (let i = 0; i < PCOUNT; i++) {
+      pp[i * 3]     = (Math.random() - 0.5) * 80
+      pp[i * 3 + 1] = (Math.random() - 0.5) * 80
+      pp[i * 3 + 2] = (Math.random() - 0.5) * 80
+      ps[i] = Math.random() * 2.0 + 0.5
+      pr[i] = Math.random()
     }
+    const pGeo = new THREE.BufferGeometry()
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pp, 3))
+    pGeo.setAttribute('aSize', new THREE.BufferAttribute(ps, 1))
+    pGeo.setAttribute('aRand', new THREE.BufferAttribute(pr, 1))
 
-    const particleGeometry = new THREE.BufferGeometry()
-    particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-    particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1))
-    particleGeometry.setAttribute('random', new THREE.BufferAttribute(randoms, 1))
-
-    const particleMaterial = new THREE.ShaderMaterial({
+    const pMat = new THREE.ShaderMaterial({
       uniforms: {
-        uTime: { value: 0 },
-        uMouse: { value: new THREE.Vector2(0, 0) },
-        uScroll: { value: 0 },
-        uColor: { value: new THREE.Color(0x7fd959) }
+        uTime:   { value: 0 },
+        uMouse:  { value: new THREE.Vector2() },
+        uColor:  { value: new THREE.Color(0x7fd959) },
+        uScroll: { value: 0 }
       },
       vertexShader: `
         uniform float uTime;
-        uniform float uScroll;
         uniform vec2 uMouse;
-        attribute float size;
-        attribute float random;
+        attribute float aSize;
+        attribute float aRand;
         varying float vAlpha;
-        void main() {
-          vec3 pos = position;
-          pos.y += sin(uTime * 0.5 + random * 10.0) * 0.2;
-          pos.x += cos(uTime * 0.3 + random * 10.0) * 0.2;
-          
-          float dist = distance(pos.xy, uMouse * 15.0);
-          if(dist < 5.0) {
-            pos.xy += normalize(pos.xy - uMouse * 15.0) * (5.0 - dist) * 0.2;
-          }
-          
-          vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-          gl_PointSize = size * (20.0 / -mvPosition.z) * (1.0 + uScroll * 2.0);
-          gl_Position = projectionMatrix * mvPosition;
-          vAlpha = 0.3 + 0.7 * random;
-        }
-      `,
+        void main(){
+          vec3 p = position;
+          float t = uTime * 0.4;
+          p.y += sin(t + aRand * 6.28) * 2.0;
+          p.x += cos(t * 0.8 + aRand * 6.28) * 1.5;
+          p.z += sin(t * 0.6 + aRand * 3.14) * 1.2;
+          float d = distance(p.xy, uMouse * 30.0);
+          if(d < 10.0){ p.xy += normalize(p.xy - uMouse * 30.0) * (10.0 - d) * 0.2; }
+          vec4 mv = modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = aSize * (35.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
+          vAlpha = (0.15 + 0.45 * aRand) * (1.0 - smoothstep(15.0, 50.0, -mv.z));
+        }`,
       fragmentShader: `
         varying float vAlpha;
         uniform vec3 uColor;
-        void main() {
+        void main(){
           float d = distance(gl_PointCoord, vec2(0.5));
           if(d > 0.5) discard;
-          gl_FragColor = vec4(uColor, vAlpha * (1.0 - d * 2.0));
-        }
-      `,
+          float g = pow(1.0 - d * 2.0, 3.0);
+          gl_FragColor = vec4(uColor, vAlpha * g);
+        }`,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false
     })
-
-    const particles = new THREE.Points(particleGeometry, particleMaterial)
+    const particles = new THREE.Points(pGeo, pMat)
     scene.add(particles)
 
-    // 8 SCROLL-DRIVEN OBJECTS GROUP
-    const objectsGroup = new THREE.Group()
-    scene.add(objectsGroup)
-
-    // 1. Golden Ratio Spiral
-    const spiralPoints = []
-    for (let i = 0; i < 200; i++) {
-      const angle = 0.1 * i
-      const r = 0.5 * angle
-      spiralPoints.push(new THREE.Vector3(r * Math.cos(angle), r * Math.sin(angle), 0))
-    }
-    const spiralCurve = new THREE.CatmullRomCurve3(spiralPoints)
-    const spiralGeo = new THREE.TubeGeometry(spiralCurve, 100, 0.05, 8, false)
-    const spiralMat = new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, transparent: true, opacity: 0 })
-    const spiral = new THREE.Mesh(spiralGeo, spiralMat)
-    objectsGroup.add(spiral)
-
-    // 2. Wireframe Figma Frame
-    const figmaGeo = new THREE.BoxGeometry(4, 6, 0.1)
-    const figmaMat = new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, transparent: true, opacity: 0 })
-    const figma = new THREE.Mesh(figmaGeo, figmaMat)
-    objectsGroup.add(figma)
-
-    // 3. DNA Helix (Typography)
-    const helixGroup = new THREE.Group()
-    const helixPoints = 100
-    for(let i = 0; i < helixPoints; i++) {
-      const y = (i / helixPoints - 0.5) * 10
-      const a = (i / helixPoints) * Math.PI * 4
-      const d1 = new THREE.Mesh(new THREE.SphereGeometry(0.05), new THREE.MeshBasicMaterial({ color: 0x7fd959 }))
-      d1.position.set(Math.cos(a), y, Math.sin(a))
-      const d2 = new THREE.Mesh(new THREE.SphereGeometry(0.05), new THREE.MeshBasicMaterial({ color: 0x7fd959 }))
-      d2.position.set(Math.cos(a + Math.PI), y, Math.sin(a + Math.PI))
-      helixGroup.add(d1, d2)
-    }
-    helixGroup.visible = false
-    objectsGroup.add(helixGroup)
-
-    // ... More objects would follow similar pattern ...
-
-    // 4. Pen Tool Path
-    const penCurve = new THREE.QuadraticBezierCurve3(
-      new THREE.Vector3(-2, -2, 0),
-      new THREE.Vector3(0, 4, 0),
-      new THREE.Vector3(2, -2, 0)
-    )
-    const penGeo = new THREE.TubeGeometry(penCurve, 64, 0.05, 8, false)
-    const penMat = new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, transparent: true, opacity: 0 })
-    const penPath = new THREE.Mesh(penGeo, penMat)
-    objectsGroup.add(penPath)
-
-    // 5. Brand Color Palette Sphere
-    const sphereGeo = new THREE.SphereGeometry(2, 32, 32)
-    const sphereMat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uOpacity: { value: 0 } },
+    /* ──────── 8 PREMIUM LIQUID OBJECTS ──────── */
+    const liquidMat = (op = 0.6) => new THREE.MeshPhysicalMaterial({
+      color: 0x7fd959,
+      metalness: 0.9,
+      roughness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.05,
+      transmission: 0.2,
+      thickness: 0.5,
+      ior: 1.5,
+      iridescence: 0.8,
+      iridescenceIOR: 1.3,
+      sheen: 0.5,
+      sheenColor: 0xffffff,
       transparent: true,
-      vertexShader: `
-        varying vec2 vUv;
-        uniform float uTime;
-        void main() {
-          vUv = uv;
-          vec3 pos = position;
-          pos += normal * sin(pos.y * 5.0 + uTime) * 0.1;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        }
-      `,
-      fragmentShader: `
-        varying vec2 vUv;
-        uniform float uOpacity;
-        void main() {
-          gl_FragColor = vec4(0.498, 0.851, 0.349, uOpacity);
-        }
-      `
+      opacity: op
     })
-    const colorSphere = new THREE.Mesh(sphereGeo, sphereMat)
-    objectsGroup.add(colorSphere)
 
-    // 6. Package Design Unbox
-    const boxGroup = new THREE.Group()
-    for(let i = 0; i < 6; i++) {
-      const plane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, side: THREE.DoubleSide }))
-      boxGroup.add(plane)
-    }
-    boxGroup.visible = false
-    objectsGroup.add(boxGroup)
+    const objs = []
+    const defs = [
+      { geo: new THREE.IcosahedronGeometry(2.2, 1),        pos: [-14, 10, -5],  op: 0.6, rs: [0.003, 0.005, 0.002], fa: 0.8,  fs: 0.50 },
+      { geo: new THREE.TorusGeometry(1.8, 0.6, 16, 40),    pos: [16, 4, -8],    op: 0.5, rs: [0.004, 0.002, 0.003], fa: 1.0,  fs: 0.40 },
+      { geo: new THREE.OctahedronGeometry(1.8, 0),         pos: [-12, -8, -3],  op: 0.5, rs: [0.005, 0.003, 0.004], fa: 0.6,  fs: 0.60 },
+      { geo: new THREE.DodecahedronGeometry(1.6, 0),       pos: [12, 12, -10],  op: 0.4, rs: [0.002, 0.004, 0.001], fa: 1.2,  fs: 0.30 },
+      { geo: new THREE.TorusKnotGeometry(1.5, 0.4, 100, 16), pos: [0, -4, -15],   op: 0.4, rs: [0.001, 0.003, 0.002], fa: 0.5,  fs: 0.35 },
+      { geo: new THREE.CylinderGeometry(1.2, 1.2, 4, 12, 1, true), pos: [-18, -4, -12], op: 0.4, rs: [0.003, 0.001, 0.004], fa: 0.9, fs: 0.45 },
+      { geo: new THREE.ConeGeometry(1.4, 3, 8),            pos: [18, -10, -6],  op: 0.5, rs: [0.004, 0.002, 0.003], fa: 0.7,  fs: 0.55 },
+      { geo: new THREE.TorusGeometry(2.5, 0.2, 8, 48),     pos: [-8, 6, -18],   op: 0.3, rs: [0.002, 0.005, 0.001], fa: 1.1,  fs: 0.38 },
+    ]
 
-    // 7. Grid System
-    const gridHelper = new THREE.GridHelper(20, 20, 0x7fd959, 0x333333)
-    gridHelper.rotation.x = Math.PI / 2
-    gridHelper.material.transparent = true
-    gridHelper.material.opacity = 0
-    objectsGroup.add(gridHelper)
+    defs.forEach((d, i) => {
+      const mat = liquidMat(d.op)
+      mat._baseOp = d.op
+      const mesh = new THREE.Mesh(d.geo, mat)
+      mesh.position.set(...d.pos)
+      scene.add(mesh)
+      objs.push({
+        mesh, mat,
+        base: new THREE.Vector3(...d.pos),
+        rs: d.rs, fa: d.fa, fs: d.fs, idx: i
+      })
+    })
 
-    // 8. Infinite Design Loop
-    const torusGeo = new THREE.TorusKnotGeometry(2, 0.4, 128, 16)
-    const torusMat = new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, transparent: true, opacity: 0 })
-    const infiniteLoop = new THREE.Mesh(torusGeo, torusMat)
-    objectsGroup.add(infiniteLoop)
-
-    // MOUSE PARALLAX
-    const onMouseMove = (e) => {
-      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1
-      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1
-    }
-    window.addEventListener('mousemove', onMouseMove)
-
-    // SCROLL ANIMATIONS
+    /* ──────── SCROLL TRACKING ──────── */
+    let scrollP = 0
     ScrollTrigger.create({
-      trigger: 'body',
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: 1,
-      onUpdate: (self) => {
-        const p = self.progress
-        scroll.current = p
-        particleMaterial.uniforms.uScroll.value = p
-        
-        // Camera movement
-        camera.position.z = 10 - p * 5
-        camera.rotation.z = p * Math.PI * 0.5
-        
-        // Visibility logic for 8 objects
-        // 0-15%: Spiral
-        spiralMat.opacity = p < 0.15 ? gsap.utils.clamp(0, 1, p * 10) : gsap.utils.clamp(0, 1, (0.2 - p) * 10)
-        spiral.rotation.z = p * 5
-        
-        // 12-28%: Figma
-        figmaMat.opacity = p > 0.12 && p < 0.28 ? 1 : 0
-        figma.rotation.y = p * 10
-        
-        // 25-40%: Helix
-        helixGroup.visible = p > 0.25 && p < 0.40
-        helixGroup.rotation.y = p * 10
-
-        // 37-52%: Pen Tool
-        penMat.opacity = p > 0.37 && p < 0.52 ? 1 : 0
-        penPath.rotation.x = p * 10
-
-        // 50-62%: Color Sphere
-        sphereMat.uniforms.uOpacity.value = p > 0.5 && p < 0.62 ? 1 : 0
-        colorSphere.rotation.y = p * 5
-
-        // 60-73%: Box Unbox
-        boxGroup.visible = p > 0.6 && p < 0.73
-        boxGroup.children.forEach((plane, i) => {
-          plane.rotation.x = p * (i + 1)
-        })
-
-        // 70-85%: Grid
-        gridHelper.material.opacity = p > 0.7 && p < 0.85 ? 1 : 0
-        gridHelper.position.z = -5 + p * 10
-
-        // 83-100%: Infinite Loop
-        torusMat.opacity = p > 0.83 ? 1 : 0
-        infiniteLoop.rotation.y = p * 15
+      trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: 1.2,
+      onUpdate: s => { 
+        scrollP = s.progress
+        pMat.uniforms.uScroll.value = s.progress 
       }
     })
 
-    const animate = (time) => {
-      particleMaterial.uniforms.uTime.value = time * 0.001
-      sphereMat.uniforms.uTime.value = time * 0.001
-      particleMaterial.uniforms.uMouse.value.lerp(new THREE.Vector2(mouse.current.x, mouse.current.y), 0.05)
-      
-      objectsGroup.rotation.y += 0.005
-      
-      renderer.render(scene, camera)
-      requestAnimationFrame(animate)
+    /* ──────── MOUSE ──────── */
+    const onMM = e => {
+      mouse.current.tx = (e.clientX / window.innerWidth) * 2 - 1
+      mouse.current.ty = -(e.clientY / window.innerHeight) * 2 + 1
     }
-    requestAnimationFrame(animate)
+    window.addEventListener('mousemove', onMM)
 
-    const handleResize = () => {
+    /* ──────── RENDER LOOP ──────── */
+    const clock = new THREE.Clock()
+    let raf
+    const animate = () => {
+      const t = clock.getElapsedTime()
+      mouse.current.x += (mouse.current.tx - mouse.current.x) * 0.05
+      mouse.current.y += (mouse.current.ty - mouse.current.y) * 0.05
+
+      pMat.uniforms.uTime.value = t
+      pMat.uniforms.uMouse.value.set(mouse.current.x, mouse.current.y)
+
+      // Scene-wide revolving on scroll
+      scene.rotation.y = scrollP * Math.PI * 0.5
+      scene.rotation.z = Math.sin(scrollP * Math.PI) * 0.1
+
+      objs.forEach(o => {
+        const { mesh, mat, base, rs, fa, fs, idx } = o
+        mesh.rotation.x += rs[0]
+        mesh.rotation.y += rs[1]
+        mesh.rotation.z += rs[2]
+
+        // Floating
+        mesh.position.y = base.y + Math.sin(t * fs + idx * 1.5) * fa
+        mesh.position.x = base.x + Math.cos(t * fs * 0.7 + idx * 2) * fa * 0.3
+
+        // Scroll depth shift + extra rotation
+        mesh.position.z = base.z + scrollP * (idx % 2 === 0 ? 12 : -12)
+        mesh.rotation.y += scrollP * 0.05
+
+        // Mouse parallax
+        const pf = 0.6 + idx * 0.15
+        mesh.position.x += mouse.current.x * pf
+        mesh.position.y += mouse.current.y * pf * 0.5
+
+        // Highlight zone — object brightens as scroll passes its zone
+        const zs = idx / objs.length
+        const ze = (idx + 1) / objs.length
+        const inZone = scrollP >= zs && scrollP < ze
+        const target = inZone ? mat._baseOp * 5.0 : mat._baseOp
+        mat.opacity += (target - mat.opacity) * 0.04
+        
+        // Color shift based on mouse
+        if(inZone) {
+            mat.color.setHSL(0.3 + mouse.current.x * 0.05, 0.6, 0.6)
+        } else {
+            mat.color.set(0x7fd959)
+        }
+      })
+
+      // Dynamic camera behavior
+      camera.position.x = mouse.current.x * 2.0
+      camera.position.y = mouse.current.y * 1.5
+      camera.position.z = 22 + Math.sin(t * 0.5) * 0.5 - scrollP * 5
+      camera.lookAt(0, 0, 0)
+
+      particles.rotation.y = t * 0.02 + scrollP * 0.5
+      particles.rotation.x = t * 0.01 + Math.sin(scrollP) * 0.2
+
+      renderer.render(scene, camera)
+      raf = requestAnimationFrame(animate)
+    }
+    animate()
+
+    const onResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight
       camera.updateProjectionMatrix()
       renderer.setSize(window.innerWidth, window.innerHeight)
     }
-    window.addEventListener('resize', handleResize)
+    window.addEventListener('resize', onResize)
 
     return () => {
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('resize', handleResize)
-      if(containerRef.current) containerRef.current.removeChild(renderer.domElement)
+      cancelAnimationFrame(raf)
+      window.removeEventListener('mousemove', onMM)
+      window.removeEventListener('resize', onResize)
+      if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
+      scene.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose() })
+      renderer.dispose()
     }
   }, [])
 

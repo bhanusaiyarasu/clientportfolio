@@ -27,8 +27,16 @@ export default function App() {
   useEffect(() => {
     const onHash = () => setShow404(window.location.hash === '#404')
     window.addEventListener('hashchange', onHash)
+    
+    // Refresh ScrollTrigger when loader is gone
+    if (!loading) {
+      setTimeout(() => {
+        ScrollTrigger.refresh()
+      }, 500)
+    }
+    
     return () => window.removeEventListener('hashchange', onHash)
-  }, [])
+  }, [loading])
 
   return (
     <>

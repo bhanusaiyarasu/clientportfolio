@@ -13,17 +13,28 @@ export default function Hero({ loaded }) {
 
   useEffect(() => {
     if (!loaded) return
-    const title = titleRef.current
-    const chars = title.textContent.split('')
-    title.innerHTML = chars.map(c => `<span style="display:inline-block">${c === ' ' ? '&nbsp;' : c}</span>`).join('')
-    const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
-    tl.from(title.querySelectorAll('span'), { scaleY: 0, transformOrigin: 'bottom', duration: 1.2, stagger: 0.06 }, 0)
-      .from(photoRef.current, { clipPath: 'inset(100% 0 0 0)', duration: 1.4 }, 0.2)
-      .to(photoRef.current, { clipPath: 'inset(0 0 0 0)', duration: 1.4 }, 0.2)
-      .from(topRef.current.querySelectorAll('span'), { y: -30, opacity: 0, stagger: 0.08, duration: 0.8 }, 0.3)
-      .from(bottomRef.current.querySelectorAll('.hero-bottom-left, .hero-bottom-right'), { x: (i) => i === 0 ? -60 : 60, opacity: 0, duration: 1 }, 0.5)
-      .from(sectionRef.current.querySelectorAll('.floating-icon'), { scale: 0.3, opacity: 0, stagger: 0.12, duration: 0.8, ease: 'back.out(1.7)' }, 0.8)
-      .from('.hero-badge', { scale: 0, opacity: 0, duration: 1, ease: 'elastic.out(1,0.6)' }, 1.2)
+    
+    const init = () => {
+      const title = titleRef.current
+      if (!title) return
+      const chars = title.textContent.split('')
+      title.innerHTML = chars.map(c => `<span style="display:inline-block">${c === ' ' ? '&nbsp;' : c}</span>`).join('')
+      
+      const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
+      tl.from(title.querySelectorAll('span'), { scaleY: 0, transformOrigin: 'bottom', duration: 1.2, stagger: 0.06 }, 0)
+        .from(photoRef.current, { clipPath: 'inset(100% 0 0 0)', duration: 1.4 }, 0.2)
+        .to(photoRef.current, { clipPath: 'inset(0 0 0 0)', duration: 1.4 }, 0.2)
+        .from(topRef.current.querySelectorAll('span'), { y: -30, opacity: 0, stagger: 0.08, duration: 0.8 }, 0.3)
+        .from(bottomRef.current.querySelectorAll('.hero-bottom-left, .hero-bottom-right'), { x: (i) => i === 0 ? -60 : 60, opacity: 0, duration: 1 }, 0.5)
+        .from(sectionRef.current.querySelectorAll('.floating-icon'), { scale: 0.3, opacity: 0, stagger: 0.12, duration: 0.8, ease: 'back.out(1.7)' }, 0.8)
+        .from('.hero-badge', { scale: 0, opacity: 0, duration: 1, ease: 'elastic.out(1,0.6)' }, 1.2)
+    }
+
+    if (document.fonts) {
+      document.fonts.ready.then(init)
+    } else {
+      setTimeout(init, 500)
+    }
   }, [loaded])
 
   useEffect(() => {
@@ -68,49 +79,7 @@ export default function Hero({ loaded }) {
       <div className="hero-center">
         <h1 className="hero-title" ref={titleRef}>Dz!ne</h1>
         <div className="hero-photo" ref={photoRef}>
-          {/* SVG Silhouette Placeholder — replace with real photo */}
-          <svg viewBox="0 0 400 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="bodyGrad" x1="200" y1="0" x2="200" y2="600" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stopColor="#1a1a1a"/>
-                <stop offset="1" stopColor="#0a0a0a"/>
-              </linearGradient>
-              <filter id="rimGlow">
-                <feGaussianBlur stdDeviation="8" result="blur"/>
-                <feFlood floodColor="#7fd959" floodOpacity="0.3"/>
-                <feComposite in2="blur" operator="in"/>
-                <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-            </defs>
-            {/* Head */}
-            <ellipse cx="200" cy="120" rx="65" ry="75" fill="#1a1a1a" filter="url(#rimGlow)"/>
-            {/* Hair */}
-            <ellipse cx="200" cy="90" rx="62" ry="48" fill="#111"/>
-            {/* Glasses */}
-            <rect x="155" y="110" width="35" height="22" rx="3" fill="none" stroke="#333" strokeWidth="2"/>
-            <rect x="210" y="110" width="35" height="22" rx="3" fill="none" stroke="#333" strokeWidth="2"/>
-            <line x1="190" y1="121" x2="210" y2="121" stroke="#333" strokeWidth="1.5"/>
-            {/* Face features */}
-            <ellipse cx="172" cy="120" rx="4" ry="5" fill="#222"/>
-            <ellipse cx="228" cy="120" rx="4" ry="5" fill="#222"/>
-            <path d="M185 148 Q200 158 215 148" fill="none" stroke="#222" strokeWidth="1.5"/>
-            {/* Neck */}
-            <rect x="185" y="190" width="30" height="30" fill="#1a1a1a"/>
-            {/* Shoulders & Body — Flannel Shirt */}
-            <path d="M100 260 Q100 220 140 210 L185 200 L200 220 L215 200 L260 210 Q300 220 300 260 L310 600 L90 600 Z" fill="url(#bodyGrad)" filter="url(#rimGlow)"/>
-            {/* Shirt pattern lines */}
-            <line x1="130" y1="230" x2="130" y2="600" stroke="#222" strokeWidth="0.5" opacity="0.4"/>
-            <line x1="170" y1="220" x2="170" y2="600" stroke="#222" strokeWidth="0.5" opacity="0.4"/>
-            <line x1="230" y1="220" x2="230" y2="600" stroke="#222" strokeWidth="0.5" opacity="0.4"/>
-            <line x1="270" y1="230" x2="270" y2="600" stroke="#222" strokeWidth="0.5" opacity="0.4"/>
-            <line x1="90" y1="300" x2="310" y2="300" stroke="#222" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="90" y1="380" x2="310" y2="380" stroke="#222" strokeWidth="0.5" opacity="0.3"/>
-            <line x1="90" y1="460" x2="310" y2="460" stroke="#222" strokeWidth="0.5" opacity="0.3"/>
-            {/* Inner T-shirt */}
-            <path d="M175 210 L200 230 L225 210 L225 350 L175 350 Z" fill="#111" opacity="0.6"/>
-            {/* Collar */}
-            <path d="M175 210 L200 230 L225 210" fill="none" stroke="#252525" strokeWidth="1.5"/>
-          </svg>
+          <img src="/MY IMAGE.png" alt="Jaideep Chaitanya — Visual & UI/UX Designer" />
         </div>
         {/* Floating tool icons */}
         <div className="floating-icon fi-figma" style={{ top: '20%', left: '8%' }}>
@@ -130,7 +99,7 @@ export default function Hero({ loaded }) {
           <span className="fi-label">STITCH</span>
         </div>
       </div>
-      {/* Rotating Badge */}
+      {/* Rotating Badge with Logo */}
       <div className="hero-badge">
         <svg viewBox="0 0 100 100" width="96" height="96">
           <defs>
@@ -140,7 +109,7 @@ export default function Hero({ loaded }) {
           <text fontSize="7" fill="#7fd959" letterSpacing="2" fontFamily="Raleway" fontWeight="600">
             <textPath href="#circlePath">CHAITANYA.DESIGNER ✦ DZINE ✦ HYDERABAD ✦</textPath>
           </text>
-          <text x="50" y="54" textAnchor="middle" fill="#7fd959" fontSize="14" fontFamily="Raleway" fontWeight="900">JC</text>
+          <image href="/LOGO.svg" x="32" y="32" width="36" height="36" />
         </svg>
       </div>
       <div className="hero-bottom" ref={bottomRef}>

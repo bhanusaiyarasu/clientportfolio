@@ -10,18 +10,47 @@ export default function About() {
 
   useEffect(() => {
     const section = sectionRef.current
+    if (!section) return
+
     const onMouse = e => {
       const rect = section.getBoundingClientRect()
       const mx = (e.clientX - rect.left) / rect.width - 0.5
-      gsap.to(cardRef.current, { rotateY: -10 + mx * 20, duration: 0.6, ease: 'power2.out' })
+      const my = (e.clientY - rect.top) / rect.height - 0.5
+      gsap.to(cardRef.current, { 
+        rotateY: -10 + mx * 30, 
+        rotateX: -my * 20,
+        duration: 0.8, 
+        ease: 'power2.out' 
+      })
     }
     section.addEventListener('mousemove', onMouse)
 
-    gsap.from(section.querySelector('.about-portrait'), { x: -80, opacity: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: section, start: 'top 70%', toggleActions: 'play none none none' } })
-    gsap.from(section.querySelectorAll('.about-text > *'), { y: 40, opacity: 0, stagger: 0.12, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: section.querySelector('.about-text'), start: 'top 70%', toggleActions: 'play none none none' } })
-    gsap.from(section.querySelector('.about-badge'), { scale: 0, duration: 1, ease: 'elastic.out(1,0.6)', scrollTrigger: { trigger: section.querySelector('.about-badge'), start: 'top 85%', toggleActions: 'play none none none' } })
+    // Robust entry animations
+    const portrait = section.querySelector('.about-portrait')
+    const textItems = section.querySelectorAll('.about-text > *')
+    const badge = section.querySelector('.about-badge')
 
-    return () => section.removeEventListener('mousemove', onMouse)
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: 'top 85%',
+        once: true
+      }
+    })
+
+    tl.fromTo(portrait, { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 1.2, ease: 'power3.out' })
+      .fromTo(textItems, { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.1, duration: 0.8, ease: 'power3.out' }, '-=0.8')
+      .fromTo(badge, { scale: 0 }, { scale: 1, duration: 0.8, ease: 'back.out(1.7)' }, '-=0.4')
+
+    // Universal fallback
+    const timer = setTimeout(() => {
+        gsap.set([portrait, ...textItems, badge], { opacity: 1, x: 0, y: 0, scale: 1 })
+    }, 4000)
+
+    return () => {
+        section.removeEventListener('mousemove', onMouse)
+        clearTimeout(timer)
+    }
   }, [])
 
   return (
@@ -33,7 +62,7 @@ export default function About() {
           <div className="sonar-ring" />
           <div className="sonar-ring" />
           <div className="sonar-ring" />
-          <img src="/jaideep.png" alt="Jaideep Chaitanya" />
+          <img src="/jaideep.jpeg" alt="Jaideep Chaitanya — Visual & UI/UX Designer" />
           <div className="about-badge">4+<br/>YRS</div>
         </div>
       </div>

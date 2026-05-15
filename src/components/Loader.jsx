@@ -3,48 +3,52 @@ import gsap from 'gsap'
 
 export default function Loader({ onComplete }) {
   const ref = useRef()
+  const ringRef = useRef()
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
     let p = 0
     const iv = setInterval(() => {
-      p += Math.random() * 4 + 1
+      p += Math.random() * 3 + 0.5
       if (p >= 100) {
         p = 100
         clearInterval(iv)
         setTimeout(() => {
-          const tl = gsap.timeline()
-          const jEl = ref.current.querySelector('.jc-j')
-          const cEl = ref.current.querySelector('.jc-c')
-          // Letters explode outward
-          tl.to(jEl, { x: '-200%', scale: 3, opacity: 0, duration: 0.7, ease: 'power4.in' }, 0)
-            .to(cEl, { x: '200%', scale: 3, opacity: 0, duration: 0.7, ease: 'power4.in' }, 0)
-            .to(ref.current, { yPercent: -100, duration: 0.8, ease: 'power4.inOut', onComplete }, 0.4)
-        }, 400)
+          const tl = gsap.timeline({ onComplete })
+          tl.to('.loader-center', { scale: 1.5, opacity: 0, duration: 0.8, ease: 'power4.in' })
+            .to(ref.current, { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, '-=0.4')
+        }, 500)
       }
       setProgress(Math.floor(p))
-    }, 40)
+    }, 30)
 
-    // Entry animation
-    gsap.from('.jc-j', { scale: 0.3, opacity: 0, duration: 1, ease: 'elastic.out(1,0.5)', delay: 0.1 })
-    gsap.from('.jc-c', { scale: 0.3, opacity: 0, duration: 1, ease: 'elastic.out(1,0.5)', delay: 0.25 })
+    // Continuous rotation for technical ring
+    gsap.to(ringRef.current, { rotation: 360, duration: 10, repeat: -1, ease: 'none' })
+
+    // Entry
+    gsap.from('.loader-center', { scale: 0.8, opacity: 0, duration: 1.2, ease: 'expo.out' })
 
     return () => clearInterval(iv)
   }, [onComplete])
 
   return (
     <div className="loader" ref={ref}>
-      <div className="jc">
-        <span className="jc-j">J</span>
-        <span className="jc-c">C</span>
-      </div>
       <div className="loader-scanline" />
-      <div className="progress-wrap">
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: progress + '%' }} />
+      <div className="loader-center">
+        <div className="loader-ring" ref={ringRef} />
+        <div className="loader-ring loader-ring-outer" />
+        <div className="jc">
+          <span className="jc-j">J</span>
+          <span className="jc-c">C</span>
         </div>
-        <div className="progress-num">{progress}%</div>
       </div>
+      <div className="progress-wrap">
+        <div className="progress-num">{progress}<span>%</span></div>
+        <div className="progress-bar-minimal">
+          <div className="progress-fill-minimal" style={{ width: progress + '%' }} />
+        </div>
+      </div>
+      <div className="loader-tag">INITIALIZING CORE ASSETS...</div>
     </div>
   )
 }

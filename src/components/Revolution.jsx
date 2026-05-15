@@ -79,10 +79,11 @@ export default function Revolution() {
     const track = trackRef.current
     if (!track) return
 
-    gsap.to(track, {
+    const scroll = gsap.to(track, {
       x: () => -(track.scrollWidth - window.innerWidth),
       ease: 'none',
       scrollTrigger: {
+        id: 'revScroll',
         trigger: sectionRef.current,
         start: 'top top',
         end: () => '+=' + (track.scrollWidth - window.innerWidth),
@@ -92,13 +93,38 @@ export default function Revolution() {
       }
     })
 
-    // Animate panels on entry
-    track.querySelectorAll('.rev-panel').forEach((panel, i) => {
+    // Animate panels on entry with horizontal trigger
+    track.querySelectorAll('.rev-panel').forEach((panel) => {
       gsap.from(panel.querySelector('.rev-text'), {
-        x: 60, opacity: 0, duration: 0.8,
-        scrollTrigger: { trigger: panel, start: 'left 80%', containerAnimation: gsap.getById?.('revScroll'), toggleActions: 'play none none none', horizontal: true }
+        x: 100, 
+        opacity: 0, 
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: { 
+            trigger: panel, 
+            start: 'left 80%', 
+            containerAnimation: scroll, 
+            toggleActions: 'play none none none' 
+        }
+      })
+      gsap.from(panel.querySelector('.rev-visual'), {
+        scale: 0.8,
+        opacity: 0,
+        duration: 1.2,
+        ease: 'expo.out',
+        scrollTrigger: {
+            trigger: panel,
+            start: 'left 70%',
+            containerAnimation: scroll,
+            toggleActions: 'play none none none'
+        }
       })
     })
+
+    return () => {
+        scroll.kill()
+        ScrollTrigger.getById('revScroll')?.kill()
+    }
   }, [])
 
   return (
