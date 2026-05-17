@@ -650,7 +650,7 @@ body::after {
     color: var(--white);
     line-height: 1.1;
     margin: 0;
-    margin-top: -25rem; /* Adjusted slightly lower as requested */
+    margin-top: -18rem; /* Adjusted lower from -25rem as requested */
     position: relative;
     z-index: 1;
     letter-spacing: -0.02em;
@@ -671,9 +671,9 @@ body::after {
 .hero-photo {
     position: absolute;
     z-index: 3;
-    width: clamp(320px, 45vw, 600px);
-    bottom: -45%;
-    /* Moved even further down from -35% */
+    width: clamp(295px, 40vw, 500px); /* Adjusted slightly larger as requested */
+    bottom: -62%;
+    /* Adjusted slightly higher to -62% as requested */
     left: 50%;
     transform: translateX(-50%);
     pointer-events: none;
