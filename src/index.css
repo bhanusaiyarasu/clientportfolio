@@ -671,7 +671,7 @@ body::after {
 .hero-photo {
     position: absolute;
     z-index: 3;
-    width: clamp(295px, 40vw, 500px); /* Adjusted slightly larger as requested */
+    width: clamp(350px, 45vw, 600px); /* Adjusted slightly larger as requested */
     bottom: -62%;
     /* Adjusted slightly higher to -62% as requested */
     left: 50%;

@@ -66,7 +66,9 @@ export default function Navigation({ onShow404 }) {
   return (
     <>
       <nav className={`navbar${scrolled ? ' scrolled' : ''}${hidden ? ' nav-hidden' : ''}`}>
-        <div className="logo">Dzine · JC</div>
+        <div className="logo" style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/LOGO2.svg" alt="Dzine · JC" style={{ height: '36px', width: 'auto' }} />
+        </div>
         <div className="nav-clock">{time} IST</div>
         <ul className="nav-links">
           {links.map(l => (
@@ -80,7 +82,9 @@ export default function Navigation({ onShow404 }) {
 
       <div className="menu-overlay" ref={overlayRef}>
         <div className="menu-header">
-          <span className="menu-logo">Dzine · JC</span>
+          <span className="menu-logo" style={{ display: 'flex', alignItems: 'center' }}>
+            <img src="/LOGO2.svg" alt="Dzine · JC" style={{ height: '36px', width: 'auto' }} />
+          </span>
           <button className="menu-close" onClick={toggleMenu}>✕</button>
         </div>
         <ul className="menu-items">

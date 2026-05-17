@@ -18,7 +18,12 @@ export default function Hero({ loaded }) {
       const title = titleRef.current
       if (!title) return
       const chars = title.textContent.split('')
-      title.innerHTML = chars.map(c => `<span style="display:inline-block">${c === ' ' ? '&nbsp;' : c}</span>`).join('')
+      title.innerHTML = chars.map(c => {
+        if (c === '!') {
+          return `<span style="display:inline-block; padding: 0 0.02em;"><svg viewBox="0 0 100 300" style="height: 0.78em; width: auto; vertical-align: baseline; transform: translateY(0.04em);" fill="currentColor"><polygon points="0,0 100,0 90,200 10,200"/><polygon points="12,240 88,240 85,300 15,300"/></svg></span>`
+        }
+        return `<span style="display:inline-block">${c === ' ' ? '&nbsp;' : c}</span>`
+      }).join('')
       
       const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
       tl.from(title.querySelectorAll('span'), { scaleY: 0, transformOrigin: 'bottom', duration: 1.2, stagger: 0.06 }, 0)
