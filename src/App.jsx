@@ -7,6 +7,7 @@ import Marquee from './components/Marquee'
 import About from './components/About'
 import Philosophy from './components/Philosophy'
 import Skills from './components/Skills'
+import BentoGrid from './components/BentoGrid'
 import Revolution from './components/Revolution'
 import Work from './components/Work'
 import Process from './components/Process'
@@ -55,6 +56,7 @@ export default function App() {
         <About />
         <Philosophy />
         <Skills />
+        <BentoGrid />
         <Revolution />
         <Work />
         <Process />

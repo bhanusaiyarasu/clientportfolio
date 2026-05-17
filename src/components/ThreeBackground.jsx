@@ -35,25 +35,122 @@ export default function ThreeBackground() {
 
     scene.fog = new THREE.FogExp2(0x030303, 0.006)
 
-    // ──── WIREFRAME SHAPES ────
-    const wireMat = (op = 0.12) => new THREE.MeshBasicMaterial({
-      color: 0x7fd959, wireframe: true, transparent: true, opacity: op, depthWrite: false
-    })
+    // ──── IMMERSIVE DESIGNING-THEME OBJECT GROUPS ────
+    const shapes = []
+
+    const createVectorPen = () => {
+      const group = new THREE.Group()
+      // Bezier path tube
+      const curvePoints = [
+        new THREE.Vector3(-3.5, -1.8, 0),
+        new THREE.Vector3(-1.8, 1.8, -1.5),
+        new THREE.Vector3(1.8, -1.8, 1.5),
+        new THREE.Vector3(3.5, 1.8, 0)
+      ]
+      const curve = new THREE.CatmullRomCurve3(curvePoints)
+      const tubeGeo = new THREE.TubeGeometry(curve, 48, 0.08, 8, false)
+      const tubeMat = new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, transparent: true, opacity: 0.12 })
+      const tubeMesh = new THREE.Mesh(tubeGeo, tubeMat)
+      group.add(tubeMesh)
+
+      // Floating vector nodes
+      const nodeGeo = new THREE.SphereGeometry(0.25, 12, 12)
+      const nodeMat = new THREE.MeshStandardMaterial({
+        color: 0x7fd959, emissive: 0x7fd959, emissiveIntensity: 0.5, roughness: 0.3
+      })
+      curvePoints.forEach(p => {
+        const node = new THREE.Mesh(nodeGeo, nodeMat)
+        node.position.copy(p)
+        group.add(node)
+      })
+      
+      // Control point handle lines
+      const lineMat = new THREE.LineBasicMaterial({ color: 0x7fd959, transparent: true, opacity: 0.15 })
+      const lineGeo1 = new THREE.BufferGeometry().setFromPoints([curvePoints[0], new THREE.Vector3(-3.5, 0, 0)])
+      const lineGeo2 = new THREE.BufferGeometry().setFromPoints([curvePoints[3], new THREE.Vector3(3.5, 0, 0)])
+      group.add(new THREE.Line(lineGeo1, lineMat))
+      group.add(new THREE.Line(lineGeo2, lineMat))
+
+      return group
+    }
+
+    const createUXLayoutLayers = () => {
+      const group = new THREE.Group()
+      const layerGeo = new THREE.BoxGeometry(4.2, 2.8, 0.06)
+      const glassMat = new THREE.MeshPhysicalMaterial({
+        color: 0x7fd959, transparent: true, opacity: 0.1, roughness: 0.1, transmission: 0.7, ior: 1.45, depthWrite: false
+      })
+      const borderMat = new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, transparent: true, opacity: 0.18 })
+
+      for (let i = 0; i < 3; i++) {
+        const layer = new THREE.Mesh(layerGeo, glassMat)
+        const border = new THREE.Mesh(layerGeo, borderMat)
+        layer.add(border)
+        layer.position.set(0, i * 0.8 - 0.8, -i * 0.8 + 0.8)
+        layer.rotation.set(-0.25, 0.35, 0.1)
+        group.add(layer)
+      }
+      return group
+    }
+
+    const createColorPicker = () => {
+      const group = new THREE.Group()
+      const ringGeo1 = new THREE.TorusGeometry(2.4, 0.1, 10, 40)
+      const ringGeo2 = new THREE.TorusGeometry(1.7, 0.06, 8, 30)
+      const ringMat1 = new THREE.MeshStandardMaterial({ color: 0x7fd959, emissive: 0x7fd959, emissiveIntensity: 0.15, transparent: true, opacity: 0.14, wireframe: true })
+      const ringMat2 = new THREE.MeshStandardMaterial({ color: 0x00ffaa, emissive: 0x00ffaa, emissiveIntensity: 0.25, transparent: true, opacity: 0.18, wireframe: true })
+      
+      const ring1 = new THREE.Mesh(ringGeo1, ringMat1)
+      const ring2 = new THREE.Mesh(ringGeo2, ringMat2)
+      
+      ring2.rotation.x = Math.PI / 3
+      group.add(ring1)
+      group.add(ring2)
+      return group
+    }
+
+    const createFigmaCanvas = () => {
+      const group = new THREE.Group()
+      const frameGeo = new THREE.PlaneGeometry(5.5, 3.6, 2, 2)
+      const frameMat = new THREE.MeshBasicMaterial({ color: 0x7fd959, wireframe: true, transparent: true, opacity: 0.1 })
+      const frame = new THREE.Mesh(frameGeo, frameMat)
+      group.add(frame)
+
+      // Canvas anchor handle points
+      const handleGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2)
+      const handleMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x7fd959, emissiveIntensity: 0.6 })
+      const corners = [
+        [-2.75, -1.8, 0], [2.75, -1.8, 0], [-2.75, 1.8, 0], [2.75, 1.8, 0]
+      ]
+      corners.forEach(c => {
+        const handle = new THREE.Mesh(handleGeo, handleMat)
+        handle.position.set(...c)
+        frame.add(handle)
+      })
+      return group
+    }
+
+    const createMobiuxRibbon = () => {
+      const group = new THREE.Group()
+      const knotGeo = new THREE.TorusKnotGeometry(1.6, 0.32, 100, 10, 3, 4)
+      const knotMat = new THREE.MeshPhysicalMaterial({
+        color: 0x7fd959, roughness: 0.25, metalness: 0.85, transparent: true, opacity: 0.15, wireframe: true
+      })
+      const knot = new THREE.Mesh(knotGeo, knotMat)
+      group.add(knot)
+      return group
+    }
 
     const shapeDefs = [
-      { geo: new THREE.IcosahedronGeometry(2.5, 1), pos: [-14, 8, -10], op: 0.12, rs: [0.002, 0.003, 0.001], fa: 1.0, fs: 0.4 },
-      { geo: new THREE.TorusKnotGeometry(1.6, 0.4, 64, 8), pos: [13, 5, -14], op: 0.08, rs: [0.001, 0.002, 0.001], fa: 0.8, fs: 0.35 },
-      { geo: new THREE.OctahedronGeometry(2.0, 0), pos: [-10, -6, -6], op: 0.10, rs: [0.003, 0.002, 0.002], fa: 0.7, fs: 0.5 },
-      { geo: new THREE.DodecahedronGeometry(1.8, 0), pos: [15, -4, -16], op: 0.07, rs: [0.002, 0.001, 0.003], fa: 1.2, fs: 0.3 },
-      { geo: new THREE.TorusGeometry(2.0, 0.12, 8, 48), pos: [-7, 11, -18], op: 0.06, rs: [0.001, 0.004, 0.001], fa: 0.9, fs: 0.38 },
-      { geo: new THREE.IcosahedronGeometry(3.0, 0), pos: [0, -9, -22], op: 0.05, rs: [0.001, 0.001, 0.002], fa: 0.5, fs: 0.25 },
-      { geo: new THREE.TetrahedronGeometry(1.5, 0), pos: [18, 9, -20], op: 0.06, rs: [0.003, 0.002, 0.001], fa: 1.1, fs: 0.42 },
-      { geo: new THREE.ConeGeometry(1.2, 3, 6), pos: [-16, -3, -12], op: 0.08, rs: [0.002, 0.003, 0.001], fa: 0.6, fs: 0.45 },
+      { builder: createVectorPen, pos: [-13, 6, -10], op: 0.12, rs: [0.002, 0.003, 0.001], fa: 0.8, fs: 0.4 },
+      { builder: createUXLayoutLayers, pos: [11, 4, -12], op: 0.10, rs: [0.001, 0.002, 0.001], fa: 0.6, fs: 0.3 },
+      { builder: createColorPicker, pos: [-9, -5, -8], op: 0.14, rs: [0.003, 0.002, 0.002], fa: 0.7, fs: 0.5 },
+      { builder: createFigmaCanvas, pos: [12, -5, -10], op: 0.09, rs: [0.002, 0.001, 0.003], fa: 0.5, fs: 0.35 },
+      { builder: createMobiuxRibbon, pos: [0, 8, -14], op: 0.12, rs: [0.002, 0.003, 0.001], fa: 0.9, fs: 0.38 }
     ]
 
-    const shapes = []
     shapeDefs.forEach((d, i) => {
-      const mesh = new THREE.Mesh(d.geo, wireMat(d.op))
+      const mesh = d.builder()
       mesh.position.set(...d.pos)
       scene.add(mesh)
       shapes.push({ mesh, base: new THREE.Vector3(...d.pos), ...d, idx: i })
@@ -72,7 +169,7 @@ export default function ThreeBackground() {
     const lineVerts = []
     for (let i = 0; i < shapes.length; i++) {
       for (let j = i + 1; j < shapes.length; j++) {
-        if (shapes[i].base.distanceTo(shapes[j].base) < 28) {
+        if (shapes[i].base.distanceTo(shapes[j].base) < 32) {
           linePairs.push([i, j])
           lineVerts.push(shapes[i].base.x, shapes[i].base.y, shapes[i].base.z)
           lineVerts.push(shapes[j].base.x, shapes[j].base.y, shapes[j].base.z)
@@ -158,7 +255,7 @@ export default function ThreeBackground() {
 
       pMat.uniforms.uTime.value = t
 
-      // Shapes
+      // Shapes Floating & Scroll Parallax
       shapes.forEach(o => {
         const { mesh, base, rs, fa, fs, idx } = o
         mesh.rotation.x += rs[0]
@@ -166,21 +263,28 @@ export default function ThreeBackground() {
         mesh.rotation.z += rs[2]
         mesh.position.y = base.y + Math.sin(t * fs + idx * 1.8) * fa
         mesh.position.x = base.x + Math.cos(t * fs * 0.6 + idx * 2.2) * fa * 0.3
-        mesh.position.z = base.z + scrollP * (idx % 2 === 0 ? 6 : -6)
+        
+        // Deep Scroll travel
+        mesh.position.z = base.z + scrollP * (idx % 2 === 0 ? 12 : -12)
 
         const pf = 0.25 + idx * 0.06
         mesh.position.x += mouse.current.x * pf
         mesh.position.y += mouse.current.y * pf * 0.3
 
-        // Glow on scroll zone
+        // Adjust opacity dynamically on scroll zone
         const zs = idx / shapes.length
         const ze = (idx + 1) / shapes.length
         const inZone = scrollP >= zs && scrollP < ze
-        const target = inZone ? o.op * 3.5 : o.op
-        mesh.material.opacity += (target - mesh.material.opacity) * 0.03
+        const target = inZone ? o.op * 2.5 : o.op
+        
+        mesh.traverse(child => {
+          if (child.material) {
+            child.material.opacity += (target - child.material.opacity) * 0.03
+          }
+        })
       })
 
-      // Update constellation
+      // Update constellation lines
       const posArr = lines.geometry.attributes.position.array
       let li = 0
       linePairs.forEach(([a, b]) => {
