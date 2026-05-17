@@ -8,9 +8,9 @@ const projects = [
   { id: '01', title: 'Bloomcraft', tags: ['BRANDING', 'LOGO'], desc: 'Eco-friendly floral identification and care app.', img: '/bloomcraft.png' },
   { id: '02', title: 'TechVista', tags: ['UI/UX', 'WEB'], desc: 'Future-forward corporate landing page.', img: '/techvista.png' },
   { id: '03', title: 'Luxeva', tags: ['PACKAGE', 'VISUAL'], desc: 'Premium skincare packaging and identity.', img: '/luxeva.png' },
-  { id: '04', title: 'Stellar', tags: ['LOGOFOLIO'], desc: 'A collection of space-themed brand marks.', img: '/bloomcraft.png' },
-  { id: '05', title: 'UrbanFlow', tags: ['APP', 'PRODUCT'], desc: 'Streamlined city navigation interface.', img: '/techvista.png' },
-  { id: '06', title: 'NeonPulse', tags: ['EVENT', 'VISUAL'], desc: 'Music festival visual ecosystem.', img: '/luxeva.png' }
+  { id: '04', title: 'Stellar', tags: ['LOGOFOLIO'], desc: 'A collection of space-themed brand marks.', img: '/stellar.png' },
+  { id: '05', title: 'UrbanFlow', tags: ['APP', 'PRODUCT'], desc: 'Streamlined city navigation interface.', img: '/urbanflow.png' },
+  { id: '06', title: 'NeonPulse', tags: ['EVENT', 'VISUAL'], desc: 'Music festival visual ecosystem.', img: '/neonpulse.png' }
 ]
 
 export default function Work() {
@@ -65,6 +65,7 @@ export default function Work() {
             <p className="work-desc">{p.desc}</p>
             <div className="work-visual">
               <img src={p.img} alt={p.title} loading="lazy" />
+              <div className="work-img-overlay" />
               <div className="placeholder-overlay">VIEW CASE</div>
             </div>
           </div>

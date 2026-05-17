@@ -8,12 +8,14 @@
     --muted: #808080;
     --white: #ffffff;
     --border: rgba(255, 255, 255, 0.1);
+    --border-dark: rgba(255, 255, 255, 0.05);
     --font-main: 'Outfit', sans-serif;
     --green-glow: rgba(127, 217, 89, 0.22);
     --green-dim: rgba(127, 217, 89, 0.07);
     --green-mid: rgba(127, 217, 89, 0.12);
-    --card: #0d0f11;
-    --card2: #111416;
+    --card: rgba(13, 15, 17, 0.85);
+    --card2: rgba(17, 20, 22, 0.85);
+    --section-bg: rgba(3, 3, 3, 0.75);
 }
 
 *,
@@ -23,7 +25,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: var(--font-main);
-    cursor: none
+    cursor: none !important;
 }
 
 html {
@@ -370,7 +372,6 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    cursor: pointer;
     z-index: 900;
     padding: 8px;
     background: none;
@@ -435,7 +436,6 @@ body::after {
     border: none;
     color: var(--text);
     font-size: 1.5rem;
-    cursor: pointer;
     transition: color .3s
 }
 
@@ -594,7 +594,6 @@ body::after {
     color: var(--muted);
     writing-mode: vertical-rl;
     transition: color .3s;
-    cursor: pointer;
     position: relative;
     z-index: 1
 }
@@ -612,7 +611,8 @@ body::after {
     align-items: center;
     position: relative;
     overflow: hidden;
-    padding: 2rem 3rem
+    padding: 2rem 3rem;
+    background: radial-gradient(ellipse at 50% 30%, rgba(127, 217, 89, 0.03) 0%, transparent 60%)
 }
 
 .hero-top-bar {
@@ -846,10 +846,20 @@ body::after {
     transition: opacity .4s;
     pointer-events: none;
     backdrop-filter: blur(4px);
+    z-index: 3
 }
 
 .work-card:hover .placeholder-overlay {
     opacity: 1;
+}
+
+.work-img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(3, 3, 3, 0.7) 0%, rgba(3, 3, 3, 0.1) 40%, transparent 70%);
+    z-index: 2;
+    pointer-events: none;
+    border-radius: inherit
 }
 
 /* MARQUEE */
@@ -906,6 +916,10 @@ body::after {
     padding: 10rem 5rem;
     position: relative;
     z-index: 2;
+    background: var(--section-bg);
+    backdrop-filter: blur(2px);
+    border-top: 1px solid var(--border-dark);
+    border-bottom: 1px solid var(--border-dark)
 }
 
 .about-portrait {
@@ -1143,7 +1157,10 @@ body::after {
 /* SKILLS */
 .skills {
     padding: 10rem 5rem;
-    text-align: center
+    text-align: center;
+    background: var(--section-bg);
+    backdrop-filter: blur(2px);
+    border-top: 1px solid var(--border-dark)
 }
 
 .skills h2 {
@@ -1247,7 +1264,8 @@ body::after {
 
 /* WORK */
 .work {
-    padding: 8rem 0
+    padding: 8rem 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(127, 217, 89, 0.02) 0%, transparent 50%)
 }
 
 .work>h2 {
@@ -1346,7 +1364,11 @@ body::after {
     display: flex;
     gap: 6rem;
     align-items: center;
-    min-height: 80vh
+    min-height: 80vh;
+    background: var(--section-bg);
+    backdrop-filter: blur(2px);
+    border-top: 1px solid var(--border-dark);
+    border-bottom: 1px solid var(--border-dark)
 }
 
 .tools-left {
@@ -1409,61 +1431,108 @@ body::after {
     perspective: 800px
 }
 
-.orbit-rig {
-    position: relative;
-    width: 300px;
-    height: 300px;
-    transform-style: preserve-3d;
-    transform: rotateX(65deg)
+/* TOOL SHOWCASE CARDS */
+.tool-showcase {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+    perspective: 600px;
+    width: 100%;
+    max-width: 420px
 }
 
-.orbit-ring {
+.showcase-card {
+    position: relative;
+    background: var(--card);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 1.5rem;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    transition: border-color 0.4s, box-shadow 0.4s
+}
+
+.showcase-card:hover {
+    border-color: var(--card-color);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--card-color) 20%, transparent),
+                0 12px 40px rgba(0, 0, 0, 0.4)
+}
+
+.showcase-glare {
     position: absolute;
     inset: 0;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    transform-style: preserve-3d
+    background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 50%), var(--card-bg), transparent 60%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s
 }
 
-.orbit-ring.outer {
-    animation: orbit 24s linear infinite
+.showcase-card:hover .showcase-glare {
+    opacity: 1
 }
 
-.orbit-ring.inner {
-    inset: 50px;
-    animation: orbit 18s linear infinite reverse
-}
-
-@keyframes orbit {
-    to {
-        transform: rotateZ(360deg)
-    }
-}
-
-.orbit-dot {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 50%;
+.showcase-icon-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: .8rem
+    margin-bottom: 1rem
 }
 
-.orbit-center {
+.showcase-icon {
+    font-size: 1.3rem;
+    font-weight: 900;
+    position: relative;
+    z-index: 1
+}
+
+.showcase-glow {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    background: var(--green);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 40px var(--green-glow), 0 0 80px var(--green-dim);
-    animation: pulse-orb 2s ease-in-out infinite alternate
+    inset: -6px;
+    border-radius: 12px;
+    opacity: 0.1;
+    filter: blur(10px);
+    transition: opacity 0.4s
+}
+
+.showcase-card:hover .showcase-glow {
+    opacity: 0.25
+}
+
+.showcase-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: var(--white)
+}
+
+.showcase-desc {
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.4;
+    font-weight: 400;
+    margin-bottom: 0.8rem
+}
+
+.showcase-bar {
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 1px;
+    overflow: hidden
+}
+
+.showcase-bar-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 1px;
+    transition: width 1.5s cubic-bezier(.22, 1, .36, 1) 0.3s
+}
+
+.showcase-card:hover .showcase-bar-fill {
+    width: 100%
 }
 
 @keyframes pulse-orb {
@@ -1550,12 +1619,11 @@ body::after {
 #scroll-root {
     position: relative;
     z-index: 1;
-    background: var(--black)
+    background: transparent
 }
 
 .footer-letter {
     display: inline-block;
-    cursor: default;
     transition: transform .3s ease
 }
 
@@ -1572,7 +1640,6 @@ body::after {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    cursor: pointer;
     font-size: 1rem;
     transition: all .3s;
     font-family: 'Raleway', sans-serif
@@ -1765,7 +1832,6 @@ body::after {
     gap: .5rem;
     font-weight: 400;
     transition: color .3s;
-    cursor: pointer;
     background: none;
     border: none;
     font-family: 'Raleway', sans-serif
@@ -1775,7 +1841,7 @@ body::after {
     color: var(--green)
 }
 
-/* CURSOR */
+/* CURSOR — PEN NIB */
 .cursor-wrap {
     position: fixed;
     top: 0;
@@ -1784,45 +1850,41 @@ body::after {
     pointer-events: none
 }
 
-.cursor-dot {
-    width: 8px;
-    height: 8px;
-    background: var(--green);
+.cursor-pen {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    transform-origin: 12.5% 12.5%;
+    filter: drop-shadow(0 0 8px rgba(127, 217, 89, 0.5));
+    will-change: transform
+}
+
+.cursor-pen svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(90deg);
+}
+
+.cursor-pen-glow {
+    position: absolute;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    position: absolute;
-    box-shadow: 0 0 12px var(--green), 0 0 24px var(--green);
-    transform: translate(-50%, -50%)
+    background: radial-gradient(circle, rgba(127, 217, 89, 0.45) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    opacity: 0.5;
+    pointer-events: none
 }
 
-.cursor-blade {
-    width: 2px;
-    height: 36px;
-    background: linear-gradient(to bottom, var(--green), transparent);
-    position: absolute;
-    transform-origin: top center;
-    border-radius: 1px
-}
-
-.cursor-trail {
-    position: absolute;
+.cursor-ink-burst {
+    position: fixed;
     width: 4px;
     height: 4px;
-    border-radius: 50%;
-    background: var(--green);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    opacity: 0.5
-}
-
-.cursor-burst {
-    position: fixed;
-    width: 6px;
-    height: 6px;
     background: var(--green);
     border-radius: 50%;
     pointer-events: none;
     z-index: 10000;
-    box-shadow: 0 0 10px var(--green)
+    box-shadow: 0 0 8px var(--green)
 }
 
 /* PHILOSOPHY */
@@ -1939,7 +2001,8 @@ body::after {
 .revolution {
     position: relative;
     overflow: hidden;
-    width: 100%
+    width: 100%;
+    background: radial-gradient(ellipse at 60% 40%, rgba(127, 217, 89, 0.02) 0%, transparent 50%)
 }
 
 .rev-track {
@@ -2024,7 +2087,10 @@ body::after {
 /* PROCESS */
 .process {
     padding: 10rem 5rem;
-    position: relative
+    position: relative;
+    background: var(--section-bg);
+    backdrop-filter: blur(2px);
+    border-top: 1px solid var(--border-dark)
 }
 
 .process>.tag {
@@ -2248,7 +2314,6 @@ body::after {
     height: 8px;
     border-radius: 50%;
     background: rgba(127, 217, 89, 0.2);
-    cursor: pointer;
     transition: all .3s
 }
 
@@ -2348,7 +2413,6 @@ body::after {
     font-weight: 700;
     letter-spacing: .2em;
     border-radius: 40px;
-    cursor: pointer;
     transition: all .4s cubic-bezier(.16, 1, .3, 1);
     position: relative;
     overflow: hidden;
@@ -2483,30 +2547,6 @@ body::after {
     border-radius: 20px
 }
 
-.work-visual-placeholder {
-    height: 250px;
-    background: #080808;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1rem;
-    position: relative;
-    overflow: hidden
-}
-
-.placeholder-overlay {
-    font-size: .7rem;
-    letter-spacing: .4em;
-    font-weight: 700;
-    opacity: 0;
-    transition: opacity .3s
-}
-
-.work-card:hover .placeholder-overlay {
-    opacity: 1
-}
-
 /* CONTACT ELEMENTS */
 .contact-plus {
     font-size: 8rem;
@@ -2628,6 +2668,33 @@ body::after {
     .tools-section {
         flex-direction: column;
         padding: 5rem 1.5rem
+    }
+
+    .neon-stage {
+        width: 100%;
+        max-width: 340px;
+        height: 360px
+    }
+
+    .stage-icon-face {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem
+    }
+
+    .stage-icons-grid {
+        gap: 1.2rem;
+        padding: 1.5rem
+    }
+
+    .tool-showcase {
+        max-width: 100%;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem
+    }
+
+    .showcase-card {
+        padding: 1.2rem
     }
 
     .nav-links,
