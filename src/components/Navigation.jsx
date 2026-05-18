@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
+import AudioPlayer from './AudioPlayer'
 
 gsap.registerPlugin(ScrollToPlugin)
 
@@ -75,9 +76,12 @@ export default function Navigation({ onShow404 }) {
             <li key={l}><a href={`#${l.toLowerCase()}`} onClick={e => navScroll(e, `#${l.toLowerCase()}`)}>{l}</a></li>
           ))}
         </ul>
-        <button className={`hamburger${menuOpen ? ' active' : ''}`} onClick={toggleMenu} aria-label="Menu">
-          <span /><span /><span />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <AudioPlayer />
+          <button className={`hamburger${menuOpen ? ' active' : ''}`} onClick={toggleMenu} aria-label="Menu">
+            <span /><span /><span />
+          </button>
+        </div>
       </nav>
 
       <div className="menu-overlay" ref={overlayRef}>
