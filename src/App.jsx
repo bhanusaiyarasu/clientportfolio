@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Loader from './components/Loader'
 import ThreeBackground from './components/ThreeBackground'
 import Navigation from './components/Navigation'
 import Hero from './components/Hero'
+
+gsap.registerPlugin(ScrollTrigger)
 import Marquee from './components/Marquee'
 import About from './components/About'
 import Philosophy from './components/Philosophy'
@@ -29,11 +33,40 @@ export default function App() {
     const onHash = () => setShow404(window.location.hash === '#404')
     window.addEventListener('hashchange', onHash)
     
-    // Refresh ScrollTrigger when loader is gone
+    // Refresh ScrollTrigger when loader is gone and images are fully loaded
     if (!loading) {
-      setTimeout(() => {
+      const images = document.querySelectorAll('img')
+      let loadedCount = 0
+      
+      const onImageLoad = () => {
+        loadedCount++
+        if (loadedCount === images.length) {
+          ScrollTrigger.refresh()
+        }
+      }
+      
+      if (images.length === 0) {
         ScrollTrigger.refresh()
-      }, 500)
+      } else {
+        images.forEach(img => {
+          if (img.complete) {
+            onImageLoad()
+          } else {
+            img.addEventListener('load', onImageLoad)
+            img.addEventListener('error', onImageLoad) // Handle broken links safely
+          }
+        })
+      }
+      
+      // Fallback timeout to ensure ScrollTrigger refreshes even if some resources take longer
+      const timer = setTimeout(() => {
+        ScrollTrigger.refresh()
+      }, 1200)
+
+      return () => {
+        window.removeEventListener('hashchange', onHash)
+        clearTimeout(timer)
+      }
     }
     
     return () => window.removeEventListener('hashchange', onHash)

@@ -18,6 +18,19 @@
     --section-bg: rgba(3, 3, 3, 0.75);
 }
 
+/* Screen Reader Only / Visually Hidden (for SEO) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 *,
 *::before,
 *::after {
@@ -407,20 +420,18 @@ body::after {
     clip-path: inset(0 0 0 100%);
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: 4rem;
+    justify-content: space-between;
+    padding: 3rem 4rem;
+    overflow-y: auto;
     background-image: repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(127, 217, 89, 0.02) 40px, rgba(127, 217, 89, 0.02) 41px),
         repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(127, 217, 89, 0.02) 40px, rgba(127, 217, 89, 0.02) 41px)
 }
 
 .menu-header {
-    position: absolute;
-    top: 2rem;
-    left: 4rem;
-    right: 4rem;
     display: flex;
     justify-content: space-between;
-    align-items: center
+    align-items: center;
+    width: 100%;
 }
 
 .menu-logo {
@@ -444,9 +455,6 @@ body::after {
 }
 
 .menu-footer {
-    position: absolute;
-    bottom: 3rem;
-    left: 4rem;
     display: flex;
     flex-direction: column;
     gap: .5rem
@@ -478,9 +486,6 @@ body::after {
 }
 
 .menu-social {
-    position: absolute;
-    bottom: 3rem;
-    right: 4rem;
     display: flex;
     gap: 1rem
 }
@@ -512,7 +517,9 @@ body::after {
 }
 
 .menu-items {
-    list-style: none
+    list-style: none;
+    margin: auto 0;
+    padding: 2rem 0;
 }
 
 .menu-items li {
@@ -520,7 +527,7 @@ body::after {
 }
 
 .menu-items a {
-    font-size: clamp(3rem, 8vw, 7rem);
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
     font-weight: 900;
     color: transparent;
     -webkit-text-stroke: 1px var(--green);
@@ -542,12 +549,11 @@ body::after {
 }
 
 .menu-bottom {
-    position: absolute;
-    bottom: 3rem;
-    left: 4rem;
-    right: 4rem;
     display: flex;
     justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    margin-top: 2rem;
     font-size: .7rem;
     color: var(--muted);
     letter-spacing: .15em
@@ -672,8 +678,8 @@ body::after {
     position: absolute;
     z-index: 3;
     width: clamp(350px, 45vw, 600px); /* Adjusted slightly larger as requested */
-    bottom: -62%;
-    /* Adjusted slightly higher to -62% as requested */
+    bottom: -75%;
+    /* Adjusted lower to -75% to make the title letters behind it visible */
     left: 50%;
     transform: translateX(-50%);
     pointer-events: none;
@@ -2602,6 +2608,18 @@ body::after {
     background: rgba(127, 217, 89, 0.05)
 }
 
+.social-circle svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
+.menu-social a svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
 /* BENTO SPOTLIGHT SECTION */
 .bento-section {
     padding: 10rem 5rem;
@@ -3208,6 +3226,35 @@ body::after {
 
     .cursor-wrap {
         display: none
+    }
+
+    /* Mobile Menu Styles */
+    .menu-overlay {
+        padding: 5rem 1.5rem 2rem 1.5rem;
+    }
+    
+    .menu-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .menu-items {
+        margin: auto 0;
+        padding: 1.5rem 0;
+    }
+
+    .menu-items li {
+        margin: 0.4rem 0;
+    }
+    
+    .menu-items a {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+    
+    .menu-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
     }
 
     /* New sections mobile */

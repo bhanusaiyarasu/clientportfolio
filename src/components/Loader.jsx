@@ -9,24 +9,24 @@ export default function Loader({ onComplete }) {
   useEffect(() => {
     let p = 0
     const iv = setInterval(() => {
-      p += Math.random() * 3 + 0.5
+      p += Math.random() * 20 + 8
       if (p >= 100) {
         p = 100
         clearInterval(iv)
         setTimeout(() => {
           const tl = gsap.timeline({ onComplete })
-          tl.to('.loader-center', { scale: 1.5, opacity: 0, duration: 0.8, ease: 'power4.in' })
-            .to(ref.current, { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, '-=0.4')
-        }, 500)
+          tl.to('.loader-center', { scale: 1.2, opacity: 0, duration: 0.4, ease: 'power4.in' })
+            .to(ref.current, { opacity: 0, duration: 0.3, ease: 'power2.inOut' }, '-=0.2')
+        }, 150)
       }
       setProgress(Math.floor(p))
-    }, 30)
+    }, 20)
 
     // Continuous rotation for technical ring
     gsap.to(ringRef.current, { rotation: 360, duration: 10, repeat: -1, ease: 'none' })
 
     // Entry
-    gsap.from('.loader-center', { scale: 0.8, opacity: 0, duration: 1.2, ease: 'expo.out' })
+    gsap.from('.loader-center', { scale: 0.8, opacity: 0, duration: 0.8, ease: 'expo.out' })
 
     return () => clearInterval(iv)
   }, [onComplete])

@@ -82,7 +82,8 @@ export default function Hero({ loaded }) {
         <span>UI/UX DESIGNER</span>
       </div>
       <div className="hero-center">
-        <h1 className="hero-title" ref={titleRef}>Dz!ne</h1>
+        <h1 className="sr-only">Jaideep Chaitanya — Visual & UI/UX Designer</h1>
+        <div className="hero-title" ref={titleRef} aria-hidden="true">Dz!ne</div>
         <div className="hero-photo" ref={photoRef}>
           <img src="/MY IMAGE.png" alt="Jaideep Chaitanya — Visual & UI/UX Designer" />
         </div>

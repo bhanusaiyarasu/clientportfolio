@@ -11,46 +11,74 @@ export default function Testimonials() {
   const [active, setActive] = useState(0)
   const sectionRef = useRef()
   const timerRef = useRef()
+  const prevActiveRef = useRef(0)
 
-  const goTo = (idx) => {
+  useEffect(() => {
     const section = sectionRef.current
     if (!section) return
-    const current = section.querySelector('.test-slide.visible')
-    const next = section.querySelectorAll('.test-slide')[idx]
-    if (!next || current === next) return
 
-    if (current) {
-      gsap.to(current, { opacity: 0, scale: 1.04, filter: 'blur(8px)', duration: 0.6, onComplete: () => current.classList.remove('visible') })
+    const slides = section.querySelectorAll('.test-slide')
+    const prevIdx = prevActiveRef.current
+
+    if (prevIdx !== active) {
+      const prevSlide = slides[prevIdx]
+      const nextSlide = slides[active]
+
+      if (prevSlide) {
+        gsap.to(prevSlide, { 
+          opacity: 0, 
+          scale: 1.04, 
+          filter: 'blur(8px)', 
+          duration: 0.6,
+          onComplete: () => {
+            prevSlide.classList.remove('visible')
+          }
+        })
+      }
+
+      if (nextSlide) {
+        nextSlide.classList.add('visible')
+        gsap.fromTo(nextSlide, 
+          { opacity: 0, scale: 0.96, filter: 'blur(8px)' }, 
+          { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.6 }
+        )
+      }
+      prevActiveRef.current = active
     }
-    next.classList.add('visible')
-    gsap.fromTo(next, { opacity: 0, scale: 0.96, filter: 'blur(8px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.6 })
-    setActive(idx)
-  }
+  }, [active])
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
-      setActive(prev => {
-        const next = (prev + 1) % quotes.length
-        goTo(next)
-        return next
-      })
+      setActive(prev => (prev + 1) % quotes.length)
     }, 6000)
 
     const onKey = (e) => {
-      if (e.key === 'ArrowRight') setActive(prev => { const n = (prev + 1) % quotes.length; goTo(n); return n })
-      if (e.key === 'ArrowLeft') setActive(prev => { const n = (prev - 1 + quotes.length) % quotes.length; goTo(n); return n })
+      if (e.key === 'ArrowRight') {
+        clearInterval(timerRef.current)
+        setActive(prev => (prev + 1) % quotes.length)
+      }
+      if (e.key === 'ArrowLeft') {
+        clearInterval(timerRef.current)
+        setActive(prev => (prev - 1 + quotes.length) % quotes.length)
+      }
     }
     window.addEventListener('keydown', onKey)
 
-    return () => { clearInterval(timerRef.current); window.removeEventListener('keydown', onKey) }
+    return () => { 
+      clearInterval(timerRef.current)
+      window.removeEventListener('keydown', onKey) 
+    }
   }, [])
 
-  const handleDot = (i) => { clearInterval(timerRef.current); goTo(i) }
+  const handleDot = (i) => { 
+    clearInterval(timerRef.current)
+    setActive(i) 
+  }
 
   return (
     <section className="testimonials" id="testimonials" ref={sectionRef}>
       {quotes.map((q, i) => (
-        <div key={i} className={`test-slide ${i === 0 ? 'visible' : ''}`}>
+        <div key={i} className={`test-slide ${i === active ? 'visible' : ''}`}>
           <span className="test-quote">"</span>
           <blockquote>{q.text}</blockquote>
           <div className="test-sep" />
