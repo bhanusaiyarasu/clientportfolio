@@ -6,6 +6,9 @@ export default function CustomCursor() {
   const glowRef = useRef()
 
   useEffect(() => {
+    const isTouch = window.matchMedia('(max-width: 768px)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
+    if (isTouch) return
+
     const onMouseMove = (e) => {
       // The tip of the pen (originally at x=4, y=28) is rotated 90 degrees clockwise around the center,
       // placing the active tip at x=4, y=4 (top-left, pointing up-left).

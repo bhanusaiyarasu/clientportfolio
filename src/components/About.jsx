@@ -23,24 +23,46 @@ export default function About() {
         ease: 'power2.out' 
       })
     }
-    section.addEventListener('mousemove', onMouse)
 
-    // Robust entry animations
     const portrait = section.querySelector('.about-portrait')
     const textItems = section.querySelectorAll('.about-text > *')
     const badge = section.querySelector('.about-badge')
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: 'top 85%',
-        once: true
-      }
-    })
+    let ctx = gsap.context(() => {
+      let mm = gsap.matchMedia()
 
-    tl.fromTo(portrait, { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 1.2, ease: 'power3.out' })
-      .fromTo(textItems, { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.1, duration: 0.8, ease: 'power3.out' }, '-=0.8')
-      .fromTo(badge, { scale: 0 }, { scale: 1, duration: 0.8, ease: 'back.out(1.7)' }, '-=0.4')
+      // Desktop animations & mouse listener
+      mm.add("(min-width: 769px)", () => {
+        section.addEventListener('mousemove', onMouse)
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 85%',
+            once: true
+          }
+        })
+
+        tl.fromTo(portrait, { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 1.2, ease: 'power3.out' })
+          .fromTo(textItems, { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.1, duration: 0.8, ease: 'power3.out' }, '-=0.8')
+          .fromTo(badge, { scale: 0 }, { scale: 1, duration: 0.8, ease: 'back.out(1.7)' }, '-=0.4')
+      })
+
+      // Mobile animations (no mouse listener, vertical entry instead of horizontal to prevent overflow)
+      mm.add("(max-width: 768px)", () => {
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 85%',
+            once: true
+          }
+        })
+
+        tl.fromTo(portrait, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1.2, ease: 'power3.out' })
+          .fromTo(textItems, { y: 30, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.1, duration: 0.8, ease: 'power3.out' }, '-=0.8')
+          .fromTo(badge, { scale: 0 }, { scale: 1, duration: 0.8, ease: 'back.out(1.7)' }, '-=0.4')
+      })
+    }, sectionRef)
 
     // Universal fallback
     const timer = setTimeout(() => {
@@ -50,6 +72,7 @@ export default function About() {
     return () => {
         section.removeEventListener('mousemove', onMouse)
         clearTimeout(timer)
+        ctx.revert()
     }
   }, [])
 

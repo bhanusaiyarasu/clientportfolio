@@ -16,14 +16,18 @@ export default function Footer() {
       l.addEventListener('mouseleave', () => gsap.to(l, { scale: 1, duration: 0.4, ease: 'elastic.out(1,0.4)' }))
     })
 
+    const isMobile = window.innerWidth <= 768
+
     gsap.from(letters, {
       y: -60, opacity: 0, stagger: 0.06, duration: 1, ease: 'expo.out',
-      scrollTrigger: { trigger: footer, start: 'top 80%', toggleActions: 'play none none none' }
+      immediateRender: false,
+      scrollTrigger: { trigger: footer, start: isMobile ? 'top 95%' : 'top 80%', toggleActions: 'play none none none' }
     })
 
     gsap.from(footer.querySelectorAll('.footer-mid, .footer-cols, .footer-copy'), {
       y: 40, opacity: 0, stagger: 0.2, duration: 0.8, ease: 'power3.out',
-      scrollTrigger: { trigger: footer, start: 'top 70%', toggleActions: 'play none none none' }
+      immediateRender: false,
+      scrollTrigger: { trigger: footer, start: isMobile ? 'top 92%' : 'top 70%', toggleActions: 'play none none none' }
     })
   }, [])
 

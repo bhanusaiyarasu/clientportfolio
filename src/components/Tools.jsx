@@ -26,6 +26,7 @@ export default function Tools() {
     rows.forEach((row, i) => {
       gsap.from(row, {
         x: -50, opacity: 0, duration: 0.8, delay: i * 0.1,
+        immediateRender: false,
         scrollTrigger: { trigger: row, start: 'top 90%', toggleActions: 'play none none none' }
       })
     })
@@ -34,30 +35,49 @@ export default function Tools() {
     const cards = section.querySelectorAll('.showcase-card')
     gsap.from(cards, {
       y: 40, opacity: 0, scale: 0.9, stagger: 0.12, duration: 0.8, ease: 'power3.out',
+      immediateRender: false,
       scrollTrigger: { trigger: showcaseRef.current, start: 'top 85%', toggleActions: 'play none none none' }
     })
 
     // Card tilt on mouse
-    cards.forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect()
-        const x = (e.clientX - rect.left) / rect.width - 0.5
-        const y = (e.clientY - rect.top) / rect.height - 0.5
-        gsap.to(card, {
-          rotateY: x * 15,
-          rotateX: -y * 15,
-          duration: 0.4,
-          ease: 'power2.out'
-        })
-        // Update glare position
-        card.style.setProperty('--mx', `${e.clientX - rect.left}px`)
-        card.style.setProperty('--my', `${e.clientY - rect.top}px`)
-      })
-      card.addEventListener('mouseleave', () => {
-        gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' })
-      })
-    })
+    const isHoverable = window.matchMedia('(hover: hover)').matches
+    if (isHoverable) {
+      cards.forEach(card => {
+        const onMouseMove = (e) => {
+          const rect = card.getBoundingClientRect()
+          const x = (e.clientX - rect.left) / rect.width - 0.5
+          const y = (e.clientY - rect.top) / rect.height - 0.5
+          gsap.to(card, {
+            rotateY: x * 15,
+            rotateX: -y * 15,
+            duration: 0.4,
+            ease: 'power2.out'
+          })
+          // Update glare position
+          card.style.setProperty('--mx', `${e.clientX - rect.left}px`)
+          card.style.setProperty('--my', `${e.clientY - rect.top}px`)
+        }
+        
+        const onMouseLeave = () => {
+          gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' })
+        }
 
+        card.addEventListener('mousemove', onMouseMove)
+        card.addEventListener('mouseleave', onMouseLeave)
+
+        card._onMouseMove = onMouseMove
+        card._onMouseLeave = onMouseLeave
+      })
+    }
+
+    return () => {
+      if (isHoverable) {
+        cards.forEach(card => {
+          if (card._onMouseMove) card.removeEventListener('mousemove', card._onMouseMove)
+          if (card._onMouseLeave) card.removeEventListener('mouseleave', card._onMouseLeave)
+        })
+      }
+    }
   }, [])
 
   return (

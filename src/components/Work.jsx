@@ -21,34 +21,76 @@ export default function Work() {
     const track = trackRef.current
     if (!track) return
 
-    const scroll = gsap.to(track, {
-      x: () => -(track.scrollWidth - window.innerWidth),
-      ease: 'none',
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: () => '+=' + (track.scrollWidth - window.innerWidth),
-        pin: true,
-        scrub: 1.2,
-        anticipatePin: 1
-      }
-    })
+    let ctx = gsap.context(() => {
+      let mm = gsap.matchMedia()
 
+      // Desktop: Horizontal Scroll & Pinning
+      mm.add("(min-width: 769px)", () => {
+        gsap.to(track, {
+          x: () => -(track.scrollWidth - window.innerWidth),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top top',
+            end: () => '+=' + (track.scrollWidth - window.innerWidth),
+            pin: true,
+            scrub: 1.2,
+            anticipatePin: 1
+          }
+        })
+      })
+
+      // Mobile: Vertical flow, simple vertical fade ins for cards
+      mm.add("(max-width: 768px)", () => {
+        const cards = sectionRef.current.querySelectorAll('.work-card')
+        cards.forEach(card => {
+          gsap.from(card, {
+            y: 40,
+            opacity: 0,
+            duration: 1,
+            ease: 'power3.out',
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: card,
+              start: 'top 85%',
+              toggleActions: 'play none none none'
+            }
+          })
+        })
+      })
+
+    }, sectionRef)
+
+    // Hover listeners for titles (mouse hover capability check)
     const titles = sectionRef.current.querySelectorAll('.work-title')
-    titles.forEach(title => {
-      const text = title.textContent
-      title.innerHTML = text.split('').map(c => `<span class="letter">${c === ' ' ? '&nbsp;' : c}</span>`).join('')
-      
-      const letters = title.querySelectorAll('.letter')
-      title.addEventListener('mouseenter', () => {
-        gsap.to(letters, { color: '#7fd959', stagger: 0.02, duration: 0.4, ease: 'power2.out' })
-      })
-      title.addEventListener('mouseleave', () => {
-        gsap.to(letters, { color: 'white', stagger: 0.01, duration: 0.3, ease: 'power2.in' })
-      })
-    })
+    const isHoverable = window.matchMedia('(hover: hover)').matches
 
-    return () => scroll.kill()
+    if (isHoverable) {
+      titles.forEach(title => {
+        const letters = title.querySelectorAll('.letter')
+        const onEnter = () => {
+          gsap.to(letters, { color: '#7fd959', stagger: 0.02, duration: 0.4, ease: 'power2.out' })
+        }
+        const onLeave = () => {
+          gsap.to(letters, { color: 'white', stagger: 0.01, duration: 0.3, ease: 'power2.in' })
+        }
+        title.addEventListener('mouseenter', onEnter)
+        title.addEventListener('mouseleave', onLeave)
+        
+        title._onEnter = onEnter
+        title._onLeave = onLeave
+      })
+    }
+
+    return () => {
+      ctx.revert()
+      if (isHoverable) {
+        titles.forEach(title => {
+          if (title._onEnter) title.removeEventListener('mouseenter', title._onEnter)
+          if (title._onLeave) title.removeEventListener('mouseleave', title._onLeave)
+        })
+      }
+    }
   }, [])
 
   return (
@@ -58,7 +100,13 @@ export default function Work() {
         {projects.map((p, i) => (
           <div className="work-card" key={i}>
             <div className="work-num">{p.id}</div>
-            <h3 className="work-title">{p.title}</h3>
+            <h3 className="work-title">
+              {p.title.split('').map((c, j) => (
+                <span className="letter" key={j}>
+                  {c === ' ' ? '\u00A0' : c}
+                </span>
+              ))}
+            </h3>
             <div className="work-tags">
               {p.tags.map(t => <span key={t}>{t}</span>)}
             </div>

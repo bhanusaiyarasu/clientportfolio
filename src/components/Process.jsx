@@ -30,16 +30,20 @@ export default function Process() {
       }
     })
 
+    const isMobile = window.innerWidth <= 768
+
     // Animate each step
     section.querySelectorAll('.process-step').forEach((step, i) => {
       gsap.from(step, {
-        x: i % 2 === 0 ? -80 : 80,
+        x: isMobile ? 0 : (i % 2 === 0 ? -80 : 80),
+        y: isMobile ? 30 : 0,
         opacity: 0,
         duration: 1,
         ease: 'power3.out',
+        immediateRender: false,
         scrollTrigger: {
           trigger: step,
-          start: 'top 80%',
+          start: isMobile ? 'top 92%' : 'top 80%',
           toggleActions: 'play none none none'
         }
       })
@@ -50,7 +54,7 @@ export default function Process() {
       const target = parseInt(num.textContent)
       ScrollTrigger.create({
         trigger: num,
-        start: 'top 85%',
+        start: isMobile ? 'top 95%' : 'top 85%',
         onEnter: () => {
           gsap.from(num, {
             textContent: 0,

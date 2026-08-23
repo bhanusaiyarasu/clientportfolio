@@ -57,15 +57,24 @@ export default function App() {
           }
         })
       }
-      
-      // Fallback timeout to ensure ScrollTrigger refreshes even if some resources take longer
-      const timer = setTimeout(() => {
+
+      // Refresh on window load to capture all assets (fonts, WebGL canvas)
+      const handleLoad = () => {
         ScrollTrigger.refresh()
-      }, 1200)
+      }
+      window.addEventListener('load', handleLoad)
+      
+      // Fallback timeouts to ensure ScrollTrigger refreshes at multiple stages of loading
+      const t1 = setTimeout(() => ScrollTrigger.refresh(), 1000)
+      const t2 = setTimeout(() => ScrollTrigger.refresh(), 2500)
+      const t3 = setTimeout(() => ScrollTrigger.refresh(), 4000)
 
       return () => {
         window.removeEventListener('hashchange', onHash)
-        clearTimeout(timer)
+        window.removeEventListener('load', handleLoad)
+        clearTimeout(t1)
+        clearTimeout(t2)
+        clearTimeout(t3)
       }
     }
     

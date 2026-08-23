@@ -46,7 +46,7 @@ export default function AudioPlayer() {
         NOTE: Place your background music file in the "public" folder and name it "bgm.mp3".
         For example: public/bgm.mp3
       */}
-      <audio ref={audioRef} loop src="https://codeskulptor-demos.commondatastorage.googleapis.com/GalaxyInvaders/theme_01.mp3" preload="auto" />
+      <audio ref={audioRef} loop src="/bgm.mp3" preload="auto" />
       <button 
         onClick={(e) => {
           e.stopPropagation()

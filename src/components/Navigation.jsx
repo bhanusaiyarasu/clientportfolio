@@ -39,15 +39,18 @@ export default function Navigation({ onShow404 }) {
     const next = !menuOpen
     setMenuOpen(next)
     if (next) {
+      document.body.classList.add('menu-open')
       gsap.to(overlayRef.current, { clipPath: 'inset(0 0 0 0%)', duration: 0.8, ease: 'power4.out' })
       gsap.from(overlayRef.current.querySelectorAll('.menu-items li'), { y: 80, opacity: 0, stagger: 0.06, duration: 0.6, ease: 'power3.out', delay: 0.2 })
     } else {
+      document.body.classList.remove('menu-open')
       gsap.to(overlayRef.current, { clipPath: 'inset(0 0 0 100%)', duration: 0.5, ease: 'power4.in' })
     }
   }
 
   const closeAndScroll = (href) => {
     setMenuOpen(false)
+    document.body.classList.remove('menu-open')
     gsap.to(overlayRef.current, { clipPath: 'inset(0 0 0 100%)', duration: 0.5, ease: 'power4.in' })
     if (href === '#404') {
       onShow404()
@@ -84,7 +87,7 @@ export default function Navigation({ onShow404 }) {
         </div>
       </nav>
 
-      <div className="menu-overlay" ref={overlayRef}>
+      <div className={`menu-overlay${menuOpen ? ' open' : ''}`} ref={overlayRef}>
         <div className="menu-header">
           <span className="menu-logo" style={{ display: 'flex', alignItems: 'center' }}>
             <img src="/LOGO2.svg" alt="Dzine · JC" style={{ height: '36px', width: 'auto' }} />

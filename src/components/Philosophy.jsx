@@ -17,47 +17,78 @@ export default function Philosophy() {
   useEffect(() => {
     const section = sectionRef.current
     const items = statementsRef.current
+    if (!section) return
 
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top top',
-      end: '+=300%',
-      pin: true,
-      scrub: 1,
-      onUpdate: (self) => {
-        const p = self.progress
-        items.forEach((item, i) => {
-          if (!item) return
-          const start = i / 3
-          const end = (i + 1) / 3
-          const mid = start + (end - start) * 0.15
-          const fadeOut = end - (end - start) * 0.15
+    let ctx = gsap.context(() => {
+      let mm = gsap.matchMedia()
 
-          if (p >= start && p < end) {
-            if (p < mid) {
-              const t = (p - start) / (mid - start)
-              gsap.set(item, { opacity: t, scale: 0.94 + t * 0.06, display: 'block' })
-            } else if (p > fadeOut) {
-              const t = (p - fadeOut) / (end - fadeOut)
-              gsap.set(item, { opacity: 1 - t, scale: 1 + t * 0.05, display: 'block' })
-            } else {
-              gsap.set(item, { opacity: 1, scale: 1, display: 'block' })
-            }
-          } else {
-            gsap.set(item, { opacity: 0, display: 'none' })
+      // Desktop: Pin and scrub statements
+      mm.add("(min-width: 769px)", () => {
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top top',
+          end: '+=300%',
+          pin: true,
+          scrub: 1,
+          onUpdate: (self) => {
+            const p = self.progress
+            items.forEach((item, i) => {
+              if (!item) return
+              const start = i / 3
+              const end = (i + 1) / 3
+              const mid = start + (end - start) * 0.15
+              const fadeOut = end - (end - start) * 0.15
+
+              if (p >= start && p < end) {
+                if (p < mid) {
+                  const t = (p - start) / (mid - start)
+                  gsap.set(item, { opacity: t, scale: 0.94 + t * 0.06, display: 'block' })
+                } else if (p > fadeOut) {
+                  const t = (p - fadeOut) / (end - fadeOut)
+                  gsap.set(item, { opacity: 1 - t, scale: 1 + t * 0.05, display: 'block' })
+                } else {
+                  gsap.set(item, { opacity: 1, scale: 1, display: 'block' })
+                }
+              } else {
+                gsap.set(item, { opacity: 0, display: 'none' })
+              }
+            })
+
+            // Progress bar
+            const bar = section.querySelector('.phil-progress-fill')
+            if (bar) bar.style.height = (p * 100) + '%'
+
+            // Dots
+            const dots = section.querySelectorAll('.phil-dot')
+            const activeIdx = Math.min(Math.floor(p * 3), 2)
+            dots.forEach((d, i) => d.classList.toggle('active', i === activeIdx))
           }
         })
+      })
 
-        // Progress bar
-        const bar = section.querySelector('.phil-progress-fill')
-        if (bar) bar.style.height = (p * 100) + '%'
+      // Mobile: Stack naturally and fade in on scroll
+      mm.add("(max-width: 768px)", () => {
+        items.forEach((item) => {
+          if (!item) return
+          // Reset positioning to allow flex column layout on mobile
+          gsap.set(item, { opacity: 0, y: 30, scale: 1, display: 'block', position: 'relative', top: 'auto', left: 'auto', transform: 'none' })
+          
+          gsap.to(item, {
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: item,
+              start: 'top 85%',
+              toggleActions: 'play none none none'
+            }
+          })
+        })
+      })
+    }, sectionRef)
 
-        // Dots
-        const dots = section.querySelectorAll('.phil-dot')
-        const activeIdx = Math.min(Math.floor(p * 3), 2)
-        dots.forEach((d, i) => d.classList.toggle('active', i === activeIdx))
-      }
-    })
+    return () => ctx.revert()
   }, [])
 
   return (

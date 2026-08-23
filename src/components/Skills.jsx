@@ -35,7 +35,10 @@ export default function Skills() {
   const sectionRef = useRef()
 
   useEffect(() => {
-    const bars = sectionRef.current.querySelectorAll('.skill-progress-fill')
+    const section = sectionRef.current
+    if (!section) return
+
+    const bars = section.querySelectorAll('.skill-progress-fill')
     bars.forEach(bar => {
       const targetWidth = bar.getAttribute('data-width')
       gsap.to(bar, {
@@ -50,16 +53,30 @@ export default function Skills() {
       })
     })
 
-    const cards = sectionRef.current.querySelectorAll('.skill-card')
-    cards.forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const y = e.clientY - rect.top
-        card.style.setProperty('--mouse-x', `${x}px`)
-        card.style.setProperty('--mouse-y', `${y}px`)
+    const cards = section.querySelectorAll('.skill-card')
+    const isHoverable = window.matchMedia('(hover: hover)').matches
+
+    if (isHoverable) {
+      cards.forEach(card => {
+        const onMouseMove = (e) => {
+          const rect = card.getBoundingClientRect()
+          const x = e.clientX - rect.left
+          const y = e.clientY - rect.top
+          card.style.setProperty('--mouse-x', `${x}px`)
+          card.style.setProperty('--mouse-y', `${y}px`)
+        }
+        card.addEventListener('mousemove', onMouseMove)
+        card._onMouseMove = onMouseMove
       })
-    })
+    }
+
+    return () => {
+      if (isHoverable) {
+        cards.forEach(card => {
+          if (card._onMouseMove) card.removeEventListener('mousemove', card._onMouseMove)
+        })
+      }
+    }
   }, [])
 
   return (

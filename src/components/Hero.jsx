@@ -17,16 +17,10 @@ export default function Hero({ loaded }) {
     const init = () => {
       const title = titleRef.current
       if (!title) return
-      const chars = title.textContent.split('')
-      title.innerHTML = chars.map(c => {
-        if (c === '!') {
-          return `<span style="display:inline-block; padding: 0 0.02em;"><svg viewBox="0 0 100 300" style="height: 0.78em; width: auto; vertical-align: baseline; transform: translateY(0.04em);" fill="currentColor"><polygon points="0,0 100,0 90,200 10,200"/><polygon points="12,240 88,240 85,300 15,300"/></svg></span>`
-        }
-        return `<span style="display:inline-block">${c === ' ' ? '&nbsp;' : c}</span>`
-      }).join('')
+      const spans = title.querySelectorAll('span')
       
       const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
-      tl.from(title.querySelectorAll('span'), { scaleY: 0, transformOrigin: 'bottom', duration: 1.2, stagger: 0.06 }, 0)
+      tl.from(spans, { scaleY: 0, transformOrigin: 'bottom', duration: 1.2, stagger: 0.06 }, 0)
         .from(photoRef.current, { clipPath: 'inset(100% 0 0 0)', duration: 1.4 }, 0.2)
         .to(photoRef.current, { clipPath: 'inset(0 0 0 0)', duration: 1.4 }, 0.2)
         .from(topRef.current.querySelectorAll('span'), { y: -30, opacity: 0, stagger: 0.08, duration: 0.8 }, 0.3)
@@ -62,8 +56,15 @@ export default function Hero({ loaded }) {
       gsap.to(photoRef.current, { x: mx * 25, y: my * 18, duration: 0.6, ease: 'power2.out', overwrite: 'auto' })
     }
     const el = sectionRef.current
-    el?.addEventListener('mousemove', onMouse)
-    return () => el?.removeEventListener('mousemove', onMouse)
+    const isHoverable = window.matchMedia('(hover: hover)').matches
+    if (isHoverable) {
+      el?.addEventListener('mousemove', onMouse)
+    }
+    return () => {
+      if (isHoverable) {
+        el?.removeEventListener('mousemove', onMouse)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -83,7 +84,25 @@ export default function Hero({ loaded }) {
       </div>
       <div className="hero-center">
         <h1 className="sr-only">Jaideep Chaitanya — Visual & UI/UX Designer</h1>
-        <div className="hero-title" ref={titleRef} aria-hidden="true">Dz!ne</div>
+        <div className="hero-title" ref={titleRef} aria-hidden="true">
+          {"Dz!ne".split('').map((c, i) => {
+            if (c === '!') {
+              return (
+                <span key={i} style={{ display: 'inline-block', padding: '0 0.02em' }}>
+                  <svg viewBox="0 0 100 300" style={{ height: '0.78em', width: 'auto', verticalAlign: 'baseline', transform: 'translateY(0.04em)' }} fill="currentColor">
+                    <polygon points="0,0 100,0 90,200 10,200"/>
+                    <polygon points="12,240 88,240 85,300 15,300"/>
+                  </svg>
+                </span>
+              )
+            }
+            return (
+              <span key={i} style={{ display: 'inline-block' }}>
+                {c === ' ' ? '\u00A0' : c}
+              </span>
+            )
+          })}
+        </div>
         <div className="hero-photo" ref={photoRef}>
           <img src="/MY IMAGE.png" alt="Jaideep Chaitanya — Visual & UI/UX Designer" />
         </div>

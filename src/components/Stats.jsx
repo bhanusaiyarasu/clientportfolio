@@ -44,6 +44,7 @@ export default function Stats() {
 
     gsap.from(section.querySelectorAll('.stat-item'), {
       y: 40, opacity: 0, stagger: 0.12, duration: 0.8, ease: 'power3.out',
+      immediateRender: false,
       scrollTrigger: { trigger: section, start: 'top 75%', toggleActions: 'play none none none' }
     })
   }, [])
