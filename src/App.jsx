@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Loader from './components/Loader'
@@ -24,13 +24,18 @@ import Page404 from './components/Page404'
 import CustomCursor from './components/CustomCursor'
 import SectionIndicator from './components/SectionIndicator'
 import ScrollVelocityBar from './components/ScrollVelocityBar'
+import AdminPanel from './components/AdminPanel'
 
 export default function App() {
   const [loading, setLoading] = useState(true)
   const [show404, setShow404] = useState(window.location.hash === '#404')
+  const [showAdmin, setShowAdmin] = useState(window.location.hash === '#admin')
 
   useEffect(() => {
-    const onHash = () => setShow404(window.location.hash === '#404')
+    const onHash = () => {
+      setShow404(window.location.hash === '#404')
+      setShowAdmin(window.location.hash === '#admin')
+    }
     window.addEventListener('hashchange', onHash)
     
     // Refresh ScrollTrigger when loader is gone and images are fully loaded
@@ -80,6 +85,16 @@ export default function App() {
     
     return () => window.removeEventListener('hashchange', onHash)
   }, [loading])
+
+  // Admin Panel — full-screen separate view
+  if (showAdmin) {
+    return (
+      <AdminPanel onExit={() => {
+        setShowAdmin(false)
+        window.location.hash = ''
+      }} />
+    )
+  }
 
   return (
     <>

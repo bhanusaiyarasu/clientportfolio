@@ -1,19 +1,25 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import gsap from 'gsap'
 
 export default function CustomCursor() {
   const penRef = useRef()
   const glowRef = useRef()
+  const [isAdmin, setIsAdmin] = useState(window.location.hash === '#admin' || document.body.classList.contains('admin-mode'))
+
+  useEffect(() => {
+    const checkAdmin = () => {
+      setIsAdmin(window.location.hash === '#admin' || document.body.classList.contains('admin-mode'))
+    }
+    window.addEventListener('hashchange', checkAdmin)
+    return () => window.removeEventListener('hashchange', checkAdmin)
+  }, [])
 
   useEffect(() => {
     const isTouch = window.matchMedia('(max-width: 768px)').matches || ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
-    if (isTouch) return
+    if (isTouch || isAdmin) return
 
     const onMouseMove = (e) => {
-      // The tip of the pen (originally at x=4, y=28) is rotated 90 degrees clockwise around the center,
-      // placing the active tip at x=4, y=4 (top-left, pointing up-left).
-      // So to place the tip exactly at the cursor coordinate, we offset:
-      // x: -4, y: -4
+      if (document.body.classList.contains('admin-mode')) return
       gsap.set(penRef.current, {
         x: e.clientX - 4,
         y: e.clientY - 4
@@ -26,6 +32,7 @@ export default function CustomCursor() {
     }
 
     const onClick = (e) => {
+      if (document.body.classList.contains('admin-mode')) return
       // Create a premium, clean ink burst at click point
       for (let i = 0; i < 6; i++) {
         const p = document.createElement('div')
@@ -61,22 +68,25 @@ export default function CustomCursor() {
       gsap.to(glowRef.current, { scale: 1, opacity: 0.4, duration: 0.2 })
     }
 
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       document.querySelectorAll('a, button, .work-card, .hero-photo, .tool-row, .skill-card, .social-circle, .menu-items a, .showcase-card').forEach(el => {
         el.addEventListener('mouseenter', onHover)
         el.addEventListener('mouseleave', onLeave)
       })
-    }, 2000)
+    }, 1500)
 
     return () => {
+      clearTimeout(timer)
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mousedown', onClick)
     }
-  }, [])
+  }, [isAdmin])
+
+  if (isAdmin) return null
 
   return (
     <div className="cursor-wrap">
-      {/* Exactly the requested Pen Nib SVG path, perfectly colored and positioned */}
+      {/* Pen Nib SVG path */}
       <div className="cursor-pen" ref={penRef}>
         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path 
